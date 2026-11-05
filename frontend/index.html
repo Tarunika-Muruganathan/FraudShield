@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FraudShield — Payment-to-Delivery Fraud Investigation Agent</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Application Shell -->
+  <div class="app-wrapper">
+    <!-- Top Forensic Header -->
+    <header class="top-nav">
+      <div class="nav-brand">
+        <div class="brand-icon-wrap">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+          </svg>
+        </div>
+        <div class="brand-info">
+          <span class="brand-title">FRAUD<span class="text-cyan">SHIELD</span></span>
+          <span class="brand-tagline">PAYMENT-TO-DELIVERY FORENSICS</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-links">
+        <a href="#dashboard" class="nav-link active" data-view="dashboard">
+          <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+          </svg>
+          Dashboard
+        </a>
+        <a href="#cases" class="nav-link" data-view="cases">
+          <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/>
+          </svg>
+          Case Management
+        </a>
+      </nav>
+
+      <!-- System Status & Primary Actions -->
+      <div class="nav-actions">
+        <div class="status-pill status-pill-online" id="api-status-pill">
+          <span class="pulse-dot"></span> Checking API...
+        </div>
+        <button class="btn btn-ghost btn-icon-only" id="btn-global-refresh" title="Refresh all data">
+          <svg class="refresh-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+        <button class="btn btn-primary btn-sm" id="btn-header-new-case">
+          <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+          </svg>
+          New Investigation
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- VIEW 1: DASHBOARD -->
+      <section id="view-dashboard" class="view-section">
+        <div class="view-header">
+          <div>
+            <h1 class="view-title">Dispute Intelligence Dashboard</h1>
+            <p class="view-subtitle">High-level overview of payment fraud patterns, delivery discrepancies, and investigation statuses.</p>
+          </div>
+        </div>
+
+        <!-- 4 Key Stat Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Total Disputes</span>
+              <div class="stat-icon-wrap text-cyan">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-value font-mono" id="stat-total-cases">0</div>
+            <div class="stat-trend text-muted">All registered cases</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Pending Review</span>
+              <div class="stat-icon-wrap text-warning">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-value font-mono text-warning" id="stat-pending-cases">0</div>
+            <div class="stat-trend text-muted">Awaiting triage & evidence</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Under Investigation</span>
+              <div class="stat-icon-wrap text-info">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-value font-mono text-info" id="stat-investigating-cases">0</div>
+            <div class="stat-trend text-muted">Active forensic analysis</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Resolved / Closed</span>
+              <div class="stat-icon-wrap text-success">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-value font-mono text-success" id="stat-completed-cases">0</div>
+            <div class="stat-trend text-muted">Resolved or rejected</div>
+          </div>
+        </div>
+
+        <!-- 2-Column Analytics Distribution -->
+        <div class="dashboard-analytics-grid">
+          <!-- Status Distribution -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Case Status Breakdown</h3>
+            </div>
+            <div class="card-body">
+              <div class="status-bar-track" id="dashboard-status-bar">
+                <div class="status-bar-empty" style="width: 100%">Loading metrics...</div>
+              </div>
+              <div class="status-legend-grid" id="dashboard-status-legend">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Dispute Types Breakdown -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Dispute Category Distribution</h3>
+            </div>
+            <div class="card-body" id="dashboard-dispute-types">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Case Activity -->
+        <div class="card" style="margin-top: 24px;">
+          <div class="card-header flex-between">
+            <div>
+              <h3 class="card-title">Recent Dispute Activity</h3>
+              <p class="card-subtitle">Latest payment discrepancies and delivery fraud filings</p>
+            </div>
+            <a href="#cases" class="btn btn-ghost btn-sm">View All Cases &rarr;</a>
+          </div>
+          <div class="card-body" id="dashboard-recent-cases">
+            <div class="skeleton-list">
+              <div class="skeleton-line" style="height: 48px; margin-bottom: 8px;"></div>
+              <div class="skeleton-line" style="height: 48px; margin-bottom: 8px;"></div>
+              <div class="skeleton-line" style="height: 48px;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: CASE MANAGEMENT -->
+      <section id="view-cases" class="view-section hidden">
+        <div class="view-header flex-between">
+          <div>
+            <div class="title-with-badge">
+              <h1 class="view-title">Case Management</h1>
+              <span class="badge badge-cyan font-mono" id="cases-count-badge">0 cases</span>
+            </div>
+            <p class="view-subtitle">Review, search, filter, and manage dispute investigations.</p>
+          </div>
+          <button class="btn btn-primary" onclick="document.dispatchEvent(new CustomEvent('open-new-case-modal'))">
+            <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+            </svg>
+            New Investigation
+          </button>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="filter-toolbar">
+          <div class="search-box">
+            <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+            </svg>
+            <input type="text" id="case-search-input" class="input input-search" placeholder="Search order ID, customer, seller, transaction ID..." />
+          </div>
+
+          <div class="filter-select-group">
+            <select id="case-status-filter" class="select select-filter">
+              <option value="all">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="investigating">Investigating</option>
+              <option value="resolved">Resolved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+
+            <select id="case-dispute-filter" class="select select-filter">
+              <option value="all">All Dispute Types</option>
+              <option value="non_delivery">Non-Delivery</option>
+              <option value="fake_delivery">Fake Delivery</option>
+              <option value="payment_fraud">Payment Fraud</option>
+              <option value="amount_mismatch">Amount Mismatch</option>
+              <option value="other">Other</option>
+            </select>
+
+            <button class="btn btn-ghost btn-sm" id="btn-reset-filters">Reset</button>
+          </div>
+        </div>
+
+        <!-- Cases Table Card -->
+        <div class="card table-card" id="cases-table-container">
+          <div class="skeleton-list">
+            <div class="skeleton-line" style="height: 50px; margin-bottom: 8px;"></div>
+            <div class="skeleton-line" style="height: 50px; margin-bottom: 8px;"></div>
+            <div class="skeleton-line" style="height: 50px;"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: CASE DETAILS & EVIDENCE LOCKER -->
+      <section id="view-case-detail" class="view-section hidden">
+        <!-- Rendered dynamically by cases.js -->
+      </section>
+    </main>
+
+    <!-- MODAL: CREATE NEW CASE -->
+    <div class="modal hidden" id="modal-new-case">
+      <div class="modal-backdrop"></div>
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <svg class="modal-icon text-cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <h3 class="modal-title">Open New Dispute Investigation</h3>
+          </div>
+          <button class="modal-close">&times;</button>
+        </div>
+
+        <form id="new-case-form">
+          <div class="modal-body">
+            <div class="alert alert-danger hidden" id="new-case-error"></div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="input-customer-name" class="form-label required">Customer Name</label>
+                <input type="text" id="input-customer-name" name="customer_name" class="input" placeholder="e.g. Rahul Kumar" required minlength="2" maxlength="100" />
+                <span class="form-hint">Claimant / Purchaser identity</span>
+              </div>
+              <div class="form-group">
+                <label for="input-seller-name" class="form-label required">Seller / Merchant Name</label>
+                <input type="text" id="input-seller-name" name="seller_name" class="input" placeholder="e.g. ABC Electronics" required minlength="2" maxlength="100" />
+                <span class="form-hint">Store / Vendor identity</span>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="input-order-id" class="form-label required">Order ID</label>
+                <input type="text" id="input-order-id" name="order_id" class="input font-mono" placeholder="e.g. ORD-1001" required minlength="2" maxlength="100" />
+                <span class="form-hint">E-commerce order identifier</span>
+              </div>
+              <div class="form-group">
+                <label for="input-transaction-id" class="form-label">Transaction ID (Optional)</label>
+                <input type="text" id="input-transaction-id" name="transaction_id" class="input font-mono" placeholder="e.g. TXN-5001" maxlength="150" />
+                <span class="form-hint">Gateway / UPI / Card reference</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="select-dispute-type" class="form-label required">Dispute Category</label>
+              <select id="select-dispute-type" name="dispute_type" class="select" required>
+                <option value="non_delivery">Non-Delivery (Payment made, item never arrived)</option>
+                <option value="fake_delivery">Fake Delivery (Carrier falsely marked delivered)</option>
+                <option value="payment_fraud">Payment Fraud (Unauthorized or duplicate charge)</option>
+                <option value="amount_mismatch">Amount Mismatch (Charged amount exceeds invoice)</option>
+                <option value="other">Other Transaction Inconsistency</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="input-description" class="form-label required">Dispute Description & Incident Details</label>
+              <textarea id="input-description" name="description" class="textarea" rows="4" placeholder="Provide factual context, customer claims, delivery tracking anomalies, or invoice amounts..." required minlength="10" maxlength="2000"></textarea>
+              <span class="form-hint">Minimum 10 characters. Detail the discrepancy factually.</span>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-ghost modal-close">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="btn-submit-new-case">Create Investigation</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: CONFIRM ACTION -->
+    <div class="modal hidden" id="modal-confirm">
+      <div class="modal-backdrop"></div>
+      <div class="modal-dialog modal-dialog-sm">
+        <div class="modal-header">
+          <h3 class="modal-title" id="confirm-modal-title">Confirm Action</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p id="confirm-modal-message" class="text-secondary">Are you sure you want to proceed?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost modal-close">Cancel</button>
+          <button type="button" class="btn btn-danger" id="confirm-modal-btn-confirm">Proceed</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="toast-container"></div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
