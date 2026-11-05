@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -16,7 +17,7 @@ from app.schemas.document_data import (
 )
 from app.services.extractor import extract_document_intelligence
 from app.services.ocr import OcrProcessingError, process_document_ocr
-from app.services.storage import get_evidence_file_path
+from app.services.storage import calculate_file_sha256, get_evidence_file_path
 
 router = APIRouter(prefix="/api/evidence", tags=["Document Intelligence & OCR"])
 
@@ -45,28 +46,61 @@ def process_evidence_ocr(
         .first()
     )
 
-    # Prevent duplicate processing unless force=True
-    if doc_data and doc_data.ocr_status == "completed" and not force:
-        return doc_data
+    # Prevent duplicate processing for repeated or simultaneous requests
+    if doc_data and not force:
+        if doc_data.ocr_status in ("completed", "processing"):
+            return doc_data
 
     if doc_data is None:
-        doc_data = EvidenceDocumentData(
-            id=str(uuid.uuid4()),
-            evidence_id=evidence_id,
-            ocr_status="processing",
-        )
-        db.add(doc_data)
-        db.commit()
-        db.refresh(doc_data)
+        try:
+            doc_data = EvidenceDocumentData(
+                id=str(uuid.uuid4()),
+                evidence_id=evidence_id,
+                ocr_status="processing",
+            )
+            db.add(doc_data)
+            db.commit()
+            db.refresh(doc_data)
+        except IntegrityError:
+            # Competing simultaneous request already created record
+            db.rollback()
+            doc_data = (
+                db.query(EvidenceDocumentData)
+                .filter(EvidenceDocumentData.evidence_id == evidence_id)
+                .first()
+            )
+            if doc_data and doc_data.ocr_status in ("completed", "processing") and not force:
+                return doc_data
+            if doc_data:
+                doc_data.ocr_status = "processing"
+                db.commit()
     else:
         doc_data.ocr_status = "processing"
         db.commit()
 
     try:
         file_path = get_evidence_file_path(evidence.stored_filename)
+
+        # Cryptographic Pre-Processing Verification: ensure file on disk matches stored SHA-256
+        pre_hash = calculate_file_sha256(file_path)
+        if pre_hash.lower() != evidence.sha256_hash.lower():
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Pre-processing integrity check failed: file hash mismatch.",
+            )
+
+        # Perform read-only OCR
         raw_text = process_document_ocr(file_path, evidence.filename)
 
-        # Extract structured intelligence from OCR text
+        # Cryptographic Post-Processing Verification: ensure file was unaltered during OCR
+        post_hash = calculate_file_sha256(file_path)
+        if post_hash.lower() != evidence.sha256_hash.lower():
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Post-processing integrity check failed: file was altered during OCR.",
+            )
+
+        # Extract structured intelligence from OCR text without fabricating values
         extracted_fields = extract_document_intelligence(raw_text)
 
         # Update evidence model's extracted_text
@@ -106,6 +140,10 @@ def process_evidence_ocr(
         db.commit()
         db.refresh(doc_data)
         return doc_data
+
+    except HTTPException:
+        # Re-raise explicit HTTP exceptions (e.g. hash mismatch)
+        raise
 
     except OcrProcessingError as ocr_err:
         doc_data.ocr_status = "unreadable"

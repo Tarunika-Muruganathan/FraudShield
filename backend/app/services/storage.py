@@ -127,6 +127,15 @@ def get_evidence_file_path(stored_filename: str) -> Path:
     return target_path
 
 
+def calculate_file_sha256(file_path: Path) -> str:
+    """Calculates SHA-256 cryptographic hash of a file on disk."""
+    hasher = hashlib.sha256()
+    with open(file_path, "rb") as f:
+        while chunk := f.read(CHUNK_SIZE):
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+
 def delete_stored_file(stored_filename: str) -> bool:
     """Safely deletes a physical file from the storage directory."""
     try:
