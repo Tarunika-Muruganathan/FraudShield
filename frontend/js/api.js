@@ -242,6 +242,38 @@ export const API = {
     return apiRequest(`/api/cases/${encodeURIComponent(caseId)}/verifications`, {
       method: 'GET'
     });
+  },
+
+  // AI Investigation Agent
+  async startInvestigation(caseId) {
+    return apiRequest(`/api/cases/${encodeURIComponent(caseId)}/investigations`, {
+      method: 'POST'
+    });
+  },
+
+  async getLatestInvestigation(caseId) {
+    return apiRequest(`/api/cases/${encodeURIComponent(caseId)}/investigations/latest`, {
+      method: 'GET'
+    });
+  },
+
+  async getInvestigationHistory(caseId) {
+    return apiRequest(`/api/cases/${encodeURIComponent(caseId)}/investigations`, {
+      method: 'GET'
+    });
+  },
+
+  async sendInvestigationChat(caseId, investigationId, message) {
+    return apiRequest(`/api/cases/${encodeURIComponent(caseId)}/investigations/${encodeURIComponent(investigationId)}/chat`, {
+      method: 'POST',
+      body: JSON.stringify({ message })
+    });
+  },
+
+  async getInvestigationMessages(caseId, investigationId) {
+    return apiRequest(`/api/cases/${encodeURIComponent(caseId)}/investigations/${encodeURIComponent(investigationId)}/messages`, {
+      method: 'GET'
+    });
   }
 };
 

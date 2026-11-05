@@ -5,6 +5,7 @@
 
 import { API } from './api.js';
 import { loadCaseEvidence } from './evidence.js';
+import { loadCaseInvestigation, startInvestigationAction } from './investigations.js';
 import { loadCaseVerification, runCaseVerificationAction } from './verification.js';
 
 let allCasesCache = [];
@@ -225,11 +226,17 @@ export async function renderCaseDetail(caseId, containerEl, onBack, onCasesChang
         &larr; Back to Case List
       </button>
       <div class="header-actions">
-        <button class="btn btn-primary btn-sm" id="btn-run-verification">
+        <button class="btn btn-primary btn-sm" id="btn-run-investigation" style="background: linear-gradient(135deg, #0284c7, #06b6d4);">
+          <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 011.09.217l1.414 1.414a1 1 0 01.217 1.09l-.8 1.599L20 11.377V13a1 1 0 01-1 1h-1.323l-1.582 3.954.8 1.599a1 1 0 01-.217 1.09l-1.414 1.414a1 1 0 01-1.09.217l-1.599-.8L12.623 23H11a1 1 0 01-1-1v-1.323l-3.954-1.582-1.599.8a1 1 0 01-1.09-.217l-1.414-1.414a1 1 0 01-.217-1.09l.8-1.599L1 14.623V13a1 1 0 011-1h1.323l1.582-3.954-.8-1.599a1 1 0 01.217-1.09l1.414-1.414a1 1 0 011.09-.217l1.599.8L9.377 3H11a1 1 0 01-1-1z" clip-rule="evenodd"/>
+          </svg>
+          AI Investigation
+        </button>
+        <button class="btn btn-secondary btn-sm" id="btn-run-verification">
           <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
           </svg>
-          Run Fraud Verification
+          Fraud Verification
         </button>
         <button class="btn btn-danger btn-sm" id="btn-delete-detail-case">
           <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
@@ -244,6 +251,7 @@ export async function renderCaseDetail(caseId, containerEl, onBack, onCasesChang
       <div class="skeleton-line" style="height: 300px;"></div>
     </div>
     <div id="case-verification-wrapper" style="margin-top: 24px;"></div>
+    <div id="case-investigation-wrapper" style="margin-top: 24px;"></div>
   `;
 
   const btnBack = containerEl.querySelector('#btn-back-to-cases');
@@ -390,6 +398,18 @@ export async function renderCaseDetail(caseId, containerEl, onBack, onCasesChang
     }
     if (verWrapper) {
       await loadCaseVerification(caseId, verWrapper);
+    }
+
+    // Load AI Investigation Agent Panel
+    const invWrapper = containerEl.querySelector('#case-investigation-wrapper');
+    const btnRunInv = containerEl.querySelector('#btn-run-investigation');
+    if (btnRunInv && invWrapper) {
+      btnRunInv.addEventListener('click', () => {
+        startInvestigationAction(caseId, invWrapper, btnRunInv);
+      });
+    }
+    if (invWrapper) {
+      await loadCaseInvestigation(caseId, invWrapper);
     }
   } catch (err) {
     containerEl.innerHTML = `

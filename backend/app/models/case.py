@@ -38,3 +38,10 @@ class Case(Base):
         passive_deletes=True,
         order_by="desc(CaseVerification.verified_at)",
     )
+    investigations = relationship(
+        "CaseInvestigation",
+        back_populates="case",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="desc(CaseInvestigation.created_at)",
+    )

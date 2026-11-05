@@ -7,6 +7,14 @@ from app.schemas.document_data import (
     PaymentIntelligence,
 )
 from app.schemas.evidence import EvidenceResponse
+from app.schemas.investigation import (
+    CaseInvestigationResponse,
+    DiscrepancyExplanation,
+    InvestigationChatMessageResponse,
+    InvestigationChatRequest,
+    ObservationItem,
+    RecommendedAction,
+)
 from app.schemas.verification import (
     CaseVerificationResponse,
     DiscrepancyItem,
@@ -28,4 +36,10 @@ __all__ = [
     "DiscrepancyItem",
     "MatchItem",
     "MissingEvidenceItem",
+    "CaseInvestigationResponse",
+    "ObservationItem",
+    "DiscrepancyExplanation",
+    "RecommendedAction",
+    "InvestigationChatRequest",
+    "InvestigationChatMessageResponse",
 ]

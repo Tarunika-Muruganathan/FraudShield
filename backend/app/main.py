@@ -10,9 +10,11 @@ from app.database import Base, engine
 from app.models.case import Case  # noqa: F401 - register model metadata
 from app.models.document_data import EvidenceDocumentData  # noqa: F401 - register model metadata
 from app.models.evidence import Evidence  # noqa: F401 - register model metadata
+from app.models.investigation import CaseInvestigation, CaseInvestigationMessage  # noqa: F401
 from app.models.verification import CaseVerification  # noqa: F401 - register model metadata
 from app.routes.cases import router as cases_router
 from app.routes.evidence import router as evidence_router
+from app.routes.investigations import router as investigations_router
 from app.routes.ocr import router as ocr_router
 from app.routes.verification import router as verification_router
 
@@ -52,6 +54,7 @@ app.include_router(cases_router)
 app.include_router(evidence_router)
 app.include_router(ocr_router)
 app.include_router(verification_router)
+app.include_router(investigations_router)
 
 
 @app.get("/")
