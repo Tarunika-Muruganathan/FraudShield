@@ -217,6 +217,12 @@ export const API = {
     return apiRequest(`/api/evidence/${encodeURIComponent(evidenceId)}/ocr`, {
       method: 'GET'
     });
+  },
+
+  async getEvidenceExtractedData(evidenceId) {
+    return apiRequest(`/api/evidence/${encodeURIComponent(evidenceId)}/extracted-data`, {
+      method: 'GET'
+    });
   }
 };
 

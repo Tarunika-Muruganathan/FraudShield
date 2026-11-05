@@ -3,7 +3,10 @@ import os
 from pathlib import Path
 import shutil
 
-import fitz  # PyMuPDF
+try:
+    import pymupdf as fitz
+except ImportError:
+    import fitz  # fallback for older environments
 from PIL import Image, ImageOps
 import pytesseract
 

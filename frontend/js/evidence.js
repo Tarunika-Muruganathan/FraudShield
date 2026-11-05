@@ -465,6 +465,10 @@ function renderIntelContent(doc, fallbackText, evidenceId) {
     ? `${escapeHtml(doc.currency || '')} ${escapeHtml(doc.payment_amount)}`.trim()
     : null;
 
+  const orderAmountStr = doc && doc.order_amount
+    ? `${escapeHtml(doc.currency || '')} ${escapeHtml(doc.order_amount)}`.trim()
+    : null;
+
   return `
     ${errorAlert}
     <div class="intel-section-title">
@@ -476,16 +480,24 @@ function renderIntelContent(doc, fallbackText, evidenceId) {
     </div>
 
     <div class="ocr-fields-grid">
+      <!-- Payment Section -->
+      <div class="ocr-group-label">
+        <svg viewBox="0 0 20 20" fill="currentColor" style="width: 14px; height: 14px;">
+          <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+          <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/>
+        </svg>
+        Payment Intelligence
+      </div>
       <div class="ocr-field-item">
         <span class="ocr-field-label">Transaction ID</span>
-        <span class="ocr-field-val font-mono">${doc && doc.transaction_id ? escapeHtml(doc.transaction_id) : '<span class="text-muted">—</span>'}</span>
+        <span class="ocr-field-val font-mono text-cyan">${doc && doc.transaction_id ? escapeHtml(doc.transaction_id) : '<span class="text-muted">—</span>'}</span>
       </div>
       <div class="ocr-field-item">
-        <span class="ocr-field-label">Order ID</span>
-        <span class="ocr-field-val font-mono text-cyan">${doc && doc.order_id ? escapeHtml(doc.order_id) : '<span class="text-muted">—</span>'}</span>
+        <span class="ocr-field-label">Payment Reference</span>
+        <span class="ocr-field-val font-mono">${doc && doc.payment_reference ? escapeHtml(doc.payment_reference) : '<span class="text-muted">—</span>'}</span>
       </div>
       <div class="ocr-field-item">
-        <span class="ocr-field-label">Amount & Currency</span>
+        <span class="ocr-field-label">Payment Amount</span>
         <span class="ocr-field-val font-mono">${amountStr ? amountStr : '<span class="text-muted">—</span>'}</span>
       </div>
       <div class="ocr-field-item">
@@ -500,21 +512,66 @@ function renderIntelContent(doc, fallbackText, evidenceId) {
         <span class="ocr-field-label">Sender / Payer</span>
         <span class="ocr-field-val">${doc && doc.sender_name ? escapeHtml(doc.sender_name) : '<span class="text-muted">—</span>'}</span>
       </div>
-      <div class="ocr-field-item">
+      <div class="ocr-field-item" style="grid-column: 1 / -1;">
         <span class="ocr-field-label">Receiver / Payee</span>
         <span class="ocr-field-val">${doc && doc.receiver_name ? escapeHtml(doc.receiver_name) : '<span class="text-muted">—</span>'}</span>
       </div>
+
+      <!-- Order Section -->
+      <div class="ocr-group-label">
+        <svg viewBox="0 0 20 20" fill="currentColor" style="width: 14px; height: 14px;">
+          <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"/>
+        </svg>
+        Order Details
+      </div>
+      <div class="ocr-field-item">
+        <span class="ocr-field-label">Order ID</span>
+        <span class="ocr-field-val font-mono text-cyan">${doc && doc.order_id ? escapeHtml(doc.order_id) : '<span class="text-muted">—</span>'}</span>
+      </div>
+      <div class="ocr-field-item">
+        <span class="ocr-field-label">Order Date</span>
+        <span class="ocr-field-val">${doc && doc.order_date ? escapeHtml(doc.order_date) : '<span class="text-muted">—</span>'}</span>
+      </div>
+      <div class="ocr-field-item">
+        <span class="ocr-field-label">Order Amount</span>
+        <span class="ocr-field-val font-mono">${orderAmountStr ? orderAmountStr : '<span class="text-muted">—</span>'}</span>
+      </div>
+      <div class="ocr-field-item">
+        <span class="ocr-field-label">Customer Info</span>
+        <span class="ocr-field-val">${doc && doc.customer_information ? escapeHtml(doc.customer_information) : '<span class="text-muted">—</span>'}</span>
+      </div>
+      <div class="ocr-field-item" style="grid-column: 1 / -1;">
+        <span class="ocr-field-label">Product Description</span>
+        <span class="ocr-field-val">${doc && doc.product_description ? escapeHtml(doc.product_description) : '<span class="text-muted">—</span>'}</span>
+      </div>
+
+      <!-- Delivery Section -->
+      <div class="ocr-group-label">
+        <svg viewBox="0 0 20 20" fill="currentColor" style="width: 14px; height: 14px;">
+          <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
+          <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"/>
+        </svg>
+        Delivery Intelligence
+      </div>
       <div class="ocr-field-item">
         <span class="ocr-field-label">Tracking Number</span>
-        <span class="ocr-field-val font-mono">${doc && doc.tracking_number ? escapeHtml(doc.tracking_number) : '<span class="text-muted">—</span>'}</span>
+        <span class="ocr-field-val font-mono text-cyan">${doc && doc.tracking_number ? escapeHtml(doc.tracking_number) : '<span class="text-muted">—</span>'}</span>
+      </div>
+      <div class="ocr-field-item">
+        <span class="ocr-field-label">Delivery Status</span>
+        <span class="ocr-field-val">${doc && doc.delivery_status ? `<span class="badge badge-investigating">${escapeHtml(doc.delivery_status)}</span>` : '<span class="text-muted">—</span>'}</span>
       </div>
       <div class="ocr-field-item">
         <span class="ocr-field-label">Delivery Date</span>
         <span class="ocr-field-val">${doc && doc.delivery_date ? escapeHtml(doc.delivery_date) : '<span class="text-muted">—</span>'}</span>
       </div>
       <div class="ocr-field-item">
-        <span class="ocr-field-label">Delivery Status</span>
-        <span class="ocr-field-val">${doc && doc.delivery_status ? `<span class="badge badge-investigating">${escapeHtml(doc.delivery_status)}</span>` : '<span class="text-muted">—</span>'}</span>
+        <span class="ocr-field-label">Recipient Info</span>
+        <span class="ocr-field-val">${doc && doc.recipient_information ? escapeHtml(doc.recipient_information) : '<span class="text-muted">—</span>'}</span>
+      </div>
+      <div class="ocr-field-item" style="grid-column: 1 / -1;">
+        <span class="ocr-field-label">Delivery Address</span>
+        <span class="ocr-field-val">${doc && doc.delivery_address ? escapeHtml(doc.delivery_address) : '<span class="text-muted">—</span>'}</span>
       </div>
     </div>
 

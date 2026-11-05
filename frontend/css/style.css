@@ -1179,6 +1179,21 @@ a:hover {
   margin-bottom: 14px;
 }
 
+.ocr-group-label {
+  grid-column: 1 / -1;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-cyan);
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .ocr-field-item {
   display: flex;
   flex-direction: column;

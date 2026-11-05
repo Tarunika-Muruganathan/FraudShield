@@ -22,18 +22,29 @@ class EvidenceDocumentData(Base):
     ocr_error = Column(Text, nullable=True)
     raw_text = Column(Text, nullable=True)
 
-    # Structured Extracted Fields
+    # Payment fields
     transaction_id = Column(String(150), nullable=True)
-    order_id = Column(String(100), nullable=True)
     payment_amount = Column(String(50), nullable=True)
     currency = Column(String(10), nullable=True)
     payment_date = Column(String(50), nullable=True)
     payment_status = Column(String(50), nullable=True)
     sender_name = Column(String(150), nullable=True)
     receiver_name = Column(String(150), nullable=True)
+    payment_reference = Column(String(150), nullable=True)
+
+    # Order fields
+    order_id = Column(String(100), nullable=True)
+    order_date = Column(String(50), nullable=True)
+    product_description = Column(Text, nullable=True)
+    order_amount = Column(String(50), nullable=True)
+    customer_information = Column(Text, nullable=True)
+
+    # Delivery fields
     tracking_number = Column(String(150), nullable=True)
     delivery_date = Column(String(50), nullable=True)
     delivery_status = Column(String(50), nullable=True)
+    recipient_information = Column(Text, nullable=True)
+    delivery_address = Column(Text, nullable=True)
 
     processed_at = Column(DateTime(timezone=True), nullable=True)
 
