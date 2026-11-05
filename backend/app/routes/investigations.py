@@ -25,6 +25,7 @@ from app.services.llm_client import (
     LLMTimeoutError,
     LLMUnavailableError,
 )
+from app.services.timeline import record_timeline_event
 
 router = APIRouter(prefix="/api/cases", tags=["AI Investigation Agent"])
 
@@ -70,6 +71,26 @@ def start_case_investigation(case_id: str, db: Session = Depends(get_db)):
 
     try:
         inv = execute_case_investigation(case, db)
+        record_timeline_event(
+            db=db,
+            case_id=case.case_id,
+            event_type="investigation_completed",
+            category="investigation",
+            title=f"AI Investigation Assessment Generated ({inv.provider_used.upper()})",
+            description=inv.summary,
+            event_timestamp=inv.created_at,
+            actor="ai_agent",
+            related_investigation_id=inv.id,
+            related_evidence_ids=inv.get_supporting_evidence_ids(),
+            metadata={
+                "investigation_id": inv.id,
+                "provider_used": inv.provider_used,
+                "model_used": inv.model_used,
+                "human_review_status": inv.human_review_status,
+                "discrepancies_count": len(inv.get_identified_discrepancies()),
+            },
+            idempotency_key=f"investigation_completed:{inv.id}",
+        )
         return format_investigation_response(inv)
     except LLMTimeoutError as te:
         raise HTTPException(
@@ -201,6 +222,38 @@ def chat_investigation(
 
     try:
         assistant_msg = handle_investigation_chat(case, inv, payload.message, db)
+
+        # Record investigator query event
+        record_timeline_event(
+            db=db,
+            case_id=case.case_id,
+            event_type="follow_up_submitted",
+            category="investigation",
+            title="Investigator Follow-Up Query",
+            description=payload.message,
+            event_timestamp=assistant_msg.created_at,
+            actor="investigator",
+            related_investigation_id=inv.id,
+            metadata={"investigation_id": inv.id},
+            idempotency_key=f"chat_message_user:{assistant_msg.id}",
+        )
+
+        # Record AI assistant response event
+        record_timeline_event(
+            db=db,
+            case_id=case.case_id,
+            event_type="ai_response_generated",
+            category="investigation",
+            title="AI Investigation Response",
+            description=assistant_msg.message,
+            event_timestamp=assistant_msg.created_at,
+            actor="ai_agent",
+            related_investigation_id=inv.id,
+            related_evidence_ids=assistant_msg.get_cited_evidence_ids(),
+            metadata={"message_id": assistant_msg.id, "investigation_id": inv.id},
+            idempotency_key=f"chat_message:{assistant_msg.id}",
+        )
+
         return InvestigationChatMessageResponse(
             id=assistant_msg.id,
             investigation_id=assistant_msg.investigation_id,

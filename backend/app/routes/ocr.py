@@ -18,6 +18,7 @@ from app.schemas.document_data import (
 from app.services.extractor import extract_document_intelligence
 from app.services.ocr import OcrProcessingError, process_document_ocr
 from app.services.storage import calculate_file_sha256, get_evidence_file_path
+from app.services.timeline import record_timeline_event
 
 router = APIRouter(prefix="/api/evidence", tags=["Document Intelligence & OCR"])
 
@@ -139,6 +140,26 @@ def process_evidence_ocr(
 
         db.commit()
         db.refresh(doc_data)
+
+        fields_found = [k for k, v in extracted_fields.items() if v is not None]
+        record_timeline_event(
+            db=db,
+            case_id=evidence.case_id,
+            event_type="ocr_completed" if doc_data.ocr_status == "completed" else "ocr_failed",
+            category="ocr",
+            title=f"OCR Extraction Completed: {evidence.filename}" if doc_data.ocr_status == "completed" else f"OCR Unreadable: {evidence.filename}",
+            description=f"Document text extracted. Structured fields identified: {', '.join(fields_found) if fields_found else 'none'}." if doc_data.ocr_status == "completed" else (doc_data.ocr_error or "Document contains no readable text or characters."),
+            event_timestamp=doc_data.processed_at,
+            actor="ocr_engine",
+            related_evidence_ids=[evidence.evidence_id],
+            metadata={
+                "evidence_id": evidence.evidence_id,
+                "filename": evidence.filename,
+                "ocr_status": doc_data.ocr_status,
+                "fields_extracted": fields_found,
+            },
+            idempotency_key=f"ocr_completed:{evidence.evidence_id}:{doc_data.processed_at.isoformat()}",
+        )
         return doc_data
 
     except HTTPException:
@@ -151,6 +172,25 @@ def process_evidence_ocr(
         doc_data.processed_at = datetime.now(timezone.utc)
         db.commit()
         db.refresh(doc_data)
+
+        record_timeline_event(
+            db=db,
+            case_id=evidence.case_id,
+            event_type="ocr_failed",
+            category="ocr",
+            title=f"OCR Unreadable: {evidence.filename}",
+            description=str(ocr_err),
+            event_timestamp=doc_data.processed_at,
+            actor="ocr_engine",
+            related_evidence_ids=[evidence.evidence_id],
+            metadata={
+                "evidence_id": evidence.evidence_id,
+                "filename": evidence.filename,
+                "ocr_status": "unreadable",
+                "error": str(ocr_err),
+            },
+            idempotency_key=f"ocr_failed:{evidence.evidence_id}:{doc_data.processed_at.isoformat()}",
+        )
         return doc_data
 
     except Exception as err:
@@ -159,6 +199,25 @@ def process_evidence_ocr(
         doc_data.processed_at = datetime.now(timezone.utc)
         db.commit()
         db.refresh(doc_data)
+
+        record_timeline_event(
+            db=db,
+            case_id=evidence.case_id,
+            event_type="ocr_failed",
+            category="ocr",
+            title=f"OCR Failed: {evidence.filename}",
+            description=f"Unexpected OCR processing error: {str(err)}",
+            event_timestamp=doc_data.processed_at,
+            actor="ocr_engine",
+            related_evidence_ids=[evidence.evidence_id],
+            metadata={
+                "evidence_id": evidence.evidence_id,
+                "filename": evidence.filename,
+                "ocr_status": "failed",
+                "error": str(err),
+            },
+            idempotency_key=f"ocr_failed:{evidence.evidence_id}:{doc_data.processed_at.isoformat()}",
+        )
         return doc_data
 
 

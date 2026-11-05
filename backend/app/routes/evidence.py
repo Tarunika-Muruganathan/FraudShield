@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
@@ -11,6 +12,7 @@ from app.services.storage import (
     get_evidence_file_path,
     save_evidence_file,
 )
+from app.services.timeline import record_timeline_event
 
 router = APIRouter(tags=["Evidence Management"])
 
@@ -50,6 +52,27 @@ async def upload_evidence(
         db.add(new_evidence)
         db.commit()
         db.refresh(new_evidence)
+
+        record_timeline_event(
+            db=db,
+            case_id=case_id,
+            event_type="evidence_uploaded",
+            category="evidence",
+            title=f"Evidence Uploaded: {clean_filename}",
+            description=f"Evidence file '{clean_filename}' ({file_size} bytes) registered in evidence locker.",
+            event_timestamp=new_evidence.uploaded_at,
+            actor="investigator",
+            related_evidence_ids=[new_evidence.evidence_id],
+            metadata={
+                "evidence_id": new_evidence.evidence_id,
+                "filename": clean_filename,
+                "file_size": file_size,
+                "content_type": content_type,
+                "sha256_hash": sha256_hash,
+            },
+            idempotency_key=f"evidence_uploaded:{new_evidence.evidence_id}",
+        )
+
         return new_evidence
     except Exception:
         delete_stored_file(stored_filename)
@@ -129,8 +152,37 @@ def delete_evidence(evidence_id: str, db: Session = Depends(get_db)):
             detail="Evidence not found",
         )
 
+    case_id = evidence.case_id
+    filename = evidence.filename
+    sha256_hash = evidence.sha256_hash
+    file_size = evidence.file_size
+    stored_filename = evidence.stored_filename
+    deleted_at = datetime.now(timezone.utc)
+
+    # Record evidence_deleted event BEFORE deleting file and evidence row
+    record_timeline_event(
+        db=db,
+        case_id=case_id,
+        event_type="evidence_deleted",
+        category="evidence",
+        title=f"Evidence Deleted: {filename}",
+        description=f"Evidence file '{filename}' was removed from the case locker.",
+        event_timestamp=deleted_at,
+        actor="investigator",
+        related_evidence_ids=[evidence_id],
+        metadata={
+            "evidence_id": evidence_id,
+            "filename": filename,
+            "sha256_hash": sha256_hash,
+            "file_size": file_size,
+            "deleted_at": deleted_at.isoformat(),
+        },
+        idempotency_key=f"evidence_deleted:{evidence_id}",
+        commit=False,
+    )
+
     # Delete physical file from disk
-    delete_stored_file(evidence.stored_filename)
+    delete_stored_file(stored_filename)
 
     db.delete(evidence)
     db.commit()

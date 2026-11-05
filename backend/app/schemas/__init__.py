@@ -15,6 +15,7 @@ from app.schemas.investigation import (
     ObservationItem,
     RecommendedAction,
 )
+from app.schemas.timeline import TimelineEventResponse
 from app.schemas.verification import (
     CaseVerificationResponse,
     DiscrepancyItem,
@@ -42,4 +43,5 @@ __all__ = [
     "RecommendedAction",
     "InvestigationChatRequest",
     "InvestigationChatMessageResponse",
+    "TimelineEventResponse",
 ]

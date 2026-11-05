@@ -15,6 +15,7 @@ from app.schemas.verification import (
     MatchItem,
     MissingEvidenceItem,
 )
+from app.services.timeline import record_timeline_event
 from app.services.verification_engine import run_case_verification
 
 router = APIRouter(prefix="/api/cases", tags=["Fraud Verification Engine"])
@@ -73,6 +74,27 @@ def verify_case(case_id: str, db: Session = Depends(get_db)):
     db.add(new_ver)
     db.commit()
     db.refresh(new_ver)
+
+    record_timeline_event(
+        db=db,
+        case_id=case_id,
+        event_type="verification_completed",
+        category="verification",
+        title=f"Verification Assessment: Risk {new_ver.risk_level} ({new_ver.risk_score}/100)",
+        description=new_ver.summary,
+        event_timestamp=new_ver.verified_at,
+        actor="verification_engine",
+        related_verification_id=new_ver.id,
+        metadata={
+            "verification_id": new_ver.id,
+            "risk_level": new_ver.risk_level,
+            "risk_score": new_ver.risk_score,
+            "discrepancies_count": len(assessment["discrepancies"]),
+            "matches_count": len(assessment["matches"]),
+            "missing_evidence_count": len(assessment["missing_evidence"]),
+        },
+        idempotency_key=f"verification_completed:{new_ver.id}",
+    )
 
     return format_verification_response(new_ver)
 

@@ -45,3 +45,10 @@ class Case(Base):
         passive_deletes=True,
         order_by="desc(CaseInvestigation.created_at)",
     )
+    timeline_events = relationship(
+        "TimelineEvent",
+        back_populates="case",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="desc(TimelineEvent.event_timestamp)",
+    )

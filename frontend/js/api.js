@@ -274,6 +274,19 @@ export const API = {
     return apiRequest(`/api/cases/${encodeURIComponent(caseId)}/investigations/${encodeURIComponent(investigationId)}/messages`, {
       method: 'GET'
     });
+  },
+
+  // Investigation Timeline
+  async getCaseTimeline(caseId, { category = null, sort = 'desc', limit = 50, offset = 0 } = {}) {
+    const params = new URLSearchParams();
+    if (category) params.append('category', category);
+    if (sort) params.append('sort', sort);
+    if (limit) params.append('limit', limit);
+    if (offset) params.append('offset', offset);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return apiRequest(`/api/cases/${encodeURIComponent(caseId)}/timeline${qs}`, {
+      method: 'GET'
+    });
   }
 };
 

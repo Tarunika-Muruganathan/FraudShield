@@ -6,6 +6,7 @@
 import { API } from './api.js';
 import { loadCaseEvidence } from './evidence.js';
 import { loadCaseInvestigation, startInvestigationAction } from './investigations.js';
+import { loadCaseTimeline } from './timeline.js';
 import { loadCaseVerification, runCaseVerificationAction } from './verification.js';
 
 let allCasesCache = [];
@@ -252,6 +253,7 @@ export async function renderCaseDetail(caseId, containerEl, onBack, onCasesChang
     </div>
     <div id="case-verification-wrapper" style="margin-top: 24px;"></div>
     <div id="case-investigation-wrapper" style="margin-top: 24px;"></div>
+    <div id="case-timeline-wrapper" style="margin-top: 24px;"></div>
   `;
 
   const btnBack = containerEl.querySelector('#btn-back-to-cases');
@@ -366,6 +368,8 @@ export async function renderCaseDetail(caseId, containerEl, onBack, onCasesChang
             detail: { message: `Case status changed to '${formatStatus(updated.status)}'.`, type: 'success' }
           }));
           if (onCasesChanged) onCasesChanged();
+          const tlWrapper = containerEl.querySelector('#case-timeline-wrapper');
+          if (tlWrapper) loadCaseTimeline(caseId, tlWrapper);
         } catch (err) {
           statusSelect.value = prevStatus;
           document.dispatchEvent(new CustomEvent('show-toast', {
@@ -382,9 +386,11 @@ export async function renderCaseDetail(caseId, containerEl, onBack, onCasesChang
     if (evidenceContainer) {
       await loadCaseEvidence(caseId, evidenceContainer, () => {
         if (onCasesChanged) onCasesChanged();
-        // Refresh verification audit if evidence changed
+        // Refresh verification audit and timeline if evidence changed
         const verWrapper = containerEl.querySelector('#case-verification-wrapper');
         if (verWrapper) loadCaseVerification(caseId, verWrapper);
+        const tlWrapper = containerEl.querySelector('#case-timeline-wrapper');
+        if (tlWrapper) loadCaseTimeline(caseId, tlWrapper);
       });
     }
 
@@ -392,8 +398,10 @@ export async function renderCaseDetail(caseId, containerEl, onBack, onCasesChang
     const verWrapper = containerEl.querySelector('#case-verification-wrapper');
     const btnRunVer = containerEl.querySelector('#btn-run-verification');
     if (btnRunVer && verWrapper) {
-      btnRunVer.addEventListener('click', () => {
-        runCaseVerificationAction(caseId, verWrapper, btnRunVer);
+      btnRunVer.addEventListener('click', async () => {
+        await runCaseVerificationAction(caseId, verWrapper, btnRunVer);
+        const tlWrapper = containerEl.querySelector('#case-timeline-wrapper');
+        if (tlWrapper) loadCaseTimeline(caseId, tlWrapper);
       });
     }
     if (verWrapper) {
@@ -404,12 +412,20 @@ export async function renderCaseDetail(caseId, containerEl, onBack, onCasesChang
     const invWrapper = containerEl.querySelector('#case-investigation-wrapper');
     const btnRunInv = containerEl.querySelector('#btn-run-investigation');
     if (btnRunInv && invWrapper) {
-      btnRunInv.addEventListener('click', () => {
-        startInvestigationAction(caseId, invWrapper, btnRunInv);
+      btnRunInv.addEventListener('click', async () => {
+        await startInvestigationAction(caseId, invWrapper, btnRunInv);
+        const tlWrapper = containerEl.querySelector('#case-timeline-wrapper');
+        if (tlWrapper) loadCaseTimeline(caseId, tlWrapper);
       });
     }
     if (invWrapper) {
       await loadCaseInvestigation(caseId, invWrapper);
+    }
+
+    // Load Investigation Timeline Panel
+    const timelineWrapper = containerEl.querySelector('#case-timeline-wrapper');
+    if (timelineWrapper) {
+      await loadCaseTimeline(caseId, timelineWrapper);
     }
   } catch (err) {
     containerEl.innerHTML = `
