@@ -31,3 +31,10 @@ class Case(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+    verifications = relationship(
+        "CaseVerification",
+        back_populates="case",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="desc(CaseVerification.verified_at)",
+    )

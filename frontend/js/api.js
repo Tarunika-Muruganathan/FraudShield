@@ -223,6 +223,25 @@ export const API = {
     return apiRequest(`/api/evidence/${encodeURIComponent(evidenceId)}/extracted-data`, {
       method: 'GET'
     });
+  },
+
+  // Fraud Verification Engine
+  async verifyCase(caseId) {
+    return apiRequest(`/api/cases/${encodeURIComponent(caseId)}/verify`, {
+      method: 'POST'
+    });
+  },
+
+  async getCaseVerification(caseId) {
+    return apiRequest(`/api/cases/${encodeURIComponent(caseId)}/verification`, {
+      method: 'GET'
+    });
+  },
+
+  async getCaseVerificationHistory(caseId) {
+    return apiRequest(`/api/cases/${encodeURIComponent(caseId)}/verifications`, {
+      method: 'GET'
+    });
   }
 };
 

@@ -5,6 +5,7 @@
 
 import { API } from './api.js';
 import { loadCaseEvidence } from './evidence.js';
+import { loadCaseVerification, runCaseVerificationAction } from './verification.js';
 
 let allCasesCache = [];
 let currentFilter = {
@@ -224,6 +225,12 @@ export async function renderCaseDetail(caseId, containerEl, onBack, onCasesChang
         &larr; Back to Case List
       </button>
       <div class="header-actions">
+        <button class="btn btn-primary btn-sm" id="btn-run-verification">
+          <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          Run Fraud Verification
+        </button>
         <button class="btn btn-danger btn-sm" id="btn-delete-detail-case">
           <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
@@ -236,6 +243,7 @@ export async function renderCaseDetail(caseId, containerEl, onBack, onCasesChang
       <div class="skeleton-line" style="height: 300px;"></div>
       <div class="skeleton-line" style="height: 300px;"></div>
     </div>
+    <div id="case-verification-wrapper" style="margin-top: 24px;"></div>
   `;
 
   const btnBack = containerEl.querySelector('#btn-back-to-cases');
@@ -364,7 +372,24 @@ export async function renderCaseDetail(caseId, containerEl, onBack, onCasesChang
     // Load Evidence Section
     const evidenceContainer = contentEl.querySelector('#evidence-locker-container');
     if (evidenceContainer) {
-      await loadCaseEvidence(caseId, evidenceContainer, onCasesChanged);
+      await loadCaseEvidence(caseId, evidenceContainer, () => {
+        if (onCasesChanged) onCasesChanged();
+        // Refresh verification audit if evidence changed
+        const verWrapper = containerEl.querySelector('#case-verification-wrapper');
+        if (verWrapper) loadCaseVerification(caseId, verWrapper);
+      });
+    }
+
+    // Load Fraud Verification Audit Panel
+    const verWrapper = containerEl.querySelector('#case-verification-wrapper');
+    const btnRunVer = containerEl.querySelector('#btn-run-verification');
+    if (btnRunVer && verWrapper) {
+      btnRunVer.addEventListener('click', () => {
+        runCaseVerificationAction(caseId, verWrapper, btnRunVer);
+      });
+    }
+    if (verWrapper) {
+      await loadCaseVerification(caseId, verWrapper);
     }
   } catch (err) {
     containerEl.innerHTML = `

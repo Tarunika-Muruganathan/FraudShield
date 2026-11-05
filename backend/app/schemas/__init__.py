@@ -7,6 +7,12 @@ from app.schemas.document_data import (
     PaymentIntelligence,
 )
 from app.schemas.evidence import EvidenceResponse
+from app.schemas.verification import (
+    CaseVerificationResponse,
+    DiscrepancyItem,
+    MatchItem,
+    MissingEvidenceItem,
+)
 
 __all__ = [
     "CaseCreate",
@@ -18,4 +24,8 @@ __all__ = [
     "PaymentIntelligence",
     "OrderIntelligence",
     "DeliveryIntelligence",
+    "CaseVerificationResponse",
+    "DiscrepancyItem",
+    "MatchItem",
+    "MissingEvidenceItem",
 ]

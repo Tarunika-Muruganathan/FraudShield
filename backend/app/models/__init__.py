@@ -1,6 +1,7 @@
 from app.models.case import Case
 from app.models.document_data import EvidenceDocumentData
 from app.models.evidence import Evidence
+from app.models.verification import CaseVerification
 
-__all__ = ["Case", "Evidence", "EvidenceDocumentData"]
+__all__ = ["Case", "Evidence", "EvidenceDocumentData", "CaseVerification"]
 
